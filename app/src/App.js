@@ -24,6 +24,8 @@ class App extends Component {
       contract: null,
       totalSupply: 0,
       colors: [],
+      ownerOf: '',
+      addressTo: ''
     };
   }
 
@@ -63,11 +65,17 @@ class App extends Component {
       window.alert('Smart contract not deployed to detected network.');
       return;
     }
+    
 
     const abi = Color.abi;
     const address = networkData.address;
     const contract = new web3.eth.Contract(abi, address);
     this.setState({ contract });
+
+    const ownerOf = await contract.methods.ownerOf(0).call()
+    console.log('ownerOf', ownerOf);
+    this.setState({ ownerOf });
+
     const totalSupply = await contract
       .methods.totalSupply().call();
     this.setState({ totalSupply });
@@ -81,6 +89,8 @@ class App extends Component {
         colors: [...this.state.colors, colorStr],
       });
     }
+
+    
   }
 
   mint = (colorStr) => {
@@ -93,6 +103,18 @@ class App extends Component {
         this.setState({
           colors: [...this.state.colors, colorStr],
         });
+      });
+  }
+
+  transferOwnership = (addressTo) => {
+    this.state.contract.methods
+      .transferFrom(this.state.account, addressTo.toLowerCase(), 0)
+      .send({ from: this.state.account })
+      .once('receipt', (receipt) => {
+        console.log ('transaction receipt: ', receipt)
+        this.setState({
+          colors: [this.state.addressTo, addressTo],
+        });  
       });
   }
 
@@ -134,6 +156,33 @@ class App extends Component {
               </div>
             </main>
           </div>
+
+          <div className="row">
+            <main role="main" className="col-lg-12 d-flex text-center">
+              <div className="content mr-auto ml-auto">
+                <h1>Transfer ownership</h1>
+                <p>(current: { this.state.ownerOf })</p>
+                <form onSubmit={(event) => {
+                  event.preventDefault();
+                  const addressTo = this.addressTo.value;
+                  this.transferOwnership(addressTo);
+                }}>
+                  <input
+                    type='text'
+                    className='form-control mb-1'
+                    placeholder='e.g. 0x34bd51dbe17b202A2C020FBC6471a3Db468c1EC9'
+                    ref={(input) => { this.addressTo = input }}
+                  />
+                  <input
+                    type='submit'
+                    className='btn btn-block btn-primary'
+                    value='TRANSFER'
+                  />
+                </form>
+              </div>
+            </main>
+          </div>
+
           <hr/>
           <div className="row text-center">
             { this.state.colors.map((colorStr, key) => {

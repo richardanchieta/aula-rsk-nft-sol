@@ -65,6 +65,7 @@ module.exports = {
       provider: () => new HDWalletProvider({
         mnemonic: { phrase: mnemonic },
         providerOrUrl: 'https://public-node.testnet.rsk.co',
+        derivationPath: "m/44'/37310'/0'/0/",
         numberOfAddresses: 10,
         pollingInterval: 15e3 
       }),
@@ -99,7 +100,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.5.7",
+      version: "0.8.3",
     }
   }
 }
